@@ -15,7 +15,7 @@ export default {
   components: { appBar },
 
   mounted() {
-    console.log('Component is mounted.');
+  
     this.getDonor();
   },
 

@@ -42,6 +42,7 @@ const actions = {
                 headers: { Authorization: `Bearer ${token}` },
             })
             .then(function(response) {
+                alert("Task Added Successfully")
                 console.log(response.data);
             })
             .catch(function(error) {
@@ -62,13 +63,29 @@ const actions = {
           })
           .then(function(response) {
             console.log(response.data);
-            commit("updateExistingTask", { taskIndex, updatedTask: response.data });
+            alert("Task Updated Successfully")
+            //commit("updateExistingTask", { taskIndex, updatedTask: response.data });
           })
           .catch(function(error) {
             alert(error.response.data.message || error);
           });
-      }
-      
+      },
+
+      deleteTask({ commit }, { taskId }) {
+        let token = localStorage.getItem("token");
+        return axios
+          .delete(`http://127.0.0.1:8000/api/tasks/${taskId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then(response => {
+            alert("Task Deleted Successfully", response.data);
+            return response.data;
+          })
+          .catch(error => {
+            alert(error);
+            throw error;
+          });
+      },
     
     
 };

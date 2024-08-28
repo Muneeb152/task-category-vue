@@ -49,7 +49,7 @@
       <!-- Actions slot -->
       <template v-slot:item.actions="{ item }">
         <v-icon class="me-2" size="small" @click="editItem(item)">mdi-pencil</v-icon>
-        <v-icon size="small" @click="deleteItem(item)">mdi-delete</v-icon>
+        <v-icon size="small" @click="confirmDelete(item)">mdi-delete</v-icon>
       </template>
     </v-data-table>
 
@@ -60,12 +60,24 @@
       @close="close"
       @save="save"
     />
+
+    <!-- Delete Modal -->
+    <v-dialog v-model="deleteDialog" max-width="500px">
+      <v-card>
+        <v-card-title class="text-h5">Are you sure you want to delete this task?</v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="closeDeleteModal">Cancel</v-btn>
+          <v-btn color="red darken-1" text @click="handledeleteTask()">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-import AddTaskModal from "@/components/AddTaskModal.vue"; // Ensure correct import path
+import AddTaskModal from "@/components/AddTaskModal.vue";
 
 export default {
   name: "TaskListingComponent",
@@ -75,6 +87,7 @@ export default {
   data() {
     return {
       dialog: false,
+      deleteDialog: false,
       search: "",
       headers: [
         { text: "Id", align: "start", sortable: true, value: "id" },
@@ -89,6 +102,7 @@ export default {
       donorDetail: {},
       editedIndex: -1,
       categories: [],
+      taskToDelete: null,
     };
   },
 
@@ -98,66 +112,81 @@ export default {
 
   watch: {
     getDonorsData: {
-    handler(tasks) {
-      const categoryMap = new Map();
-      tasks.forEach(task => {
-        if (!categoryMap.has(task.category_id)) {
-          categoryMap.set(task.category_id, {
-            id: task.category_id,
-            name: task.category_name
-          });
-        }
-      });
-      this.categories = Array.from(categoryMap.values());
+      handler(tasks) {
+        const categoryMap = new Map();
+        tasks.forEach(task => {
+          if (!categoryMap.has(task.category_id)) {
+            categoryMap.set(task.category_id, {
+              id: task.category_id,
+              name: task.category_name
+            });
+          }
+        });
+        this.categories = Array.from(categoryMap.values());
+      },
+      immediate: true,
     },
-    immediate: true,
-  },
   },
 
   methods: {
-    ...mapActions(["addTask", "updateTask"]),
+    ...mapActions(["addTask", "updateTask", "deleteTask", "getDonor"]),
 
     openAddTaskModal() {
-      this.donorDetail = {}; // Reset donorDetail for adding a new task
+      this.donorDetail = {};
       this.editedIndex = -1;
       this.dialog = true;
     },
 
     editItem(item) {
-      console.log("Id in editedItem is:"+item)
       this.donorDetail = { ...item };
       this.editedIndex = item.id;
-      
       this.dialog = true;
     },
 
+    confirmDelete(item) {
+      this.deleteDialog = true;
+      this.taskToDelete = item;
+    },
+
+    handledeleteTask() {
+      this.closeDeleteModal();
+      this.deleteTask({ taskId: this.taskToDelete.id }).then(() => {
+        this.getDonor();
+
+      });
+    },
+
     save(taskDetail) {
-  const formData = new FormData();
+      const formData = new FormData();
+      for (const key in taskDetail) {
+        if (key === "image" && taskDetail[key] instanceof File) {
+          formData.append(key, taskDetail[key]);
+        } else if (key !== "category_name") {
+          formData.append(key, taskDetail[key]);
+        }
+      }
 
-  for (const key in taskDetail) {
-    if (key === "image" && taskDetail[key] instanceof File) {
-        formData.append(key, taskDetail[key]);
-    } else if (key !== "category_name") { 
-        formData.append(key, taskDetail[key]);
-    }
-}
-
-  if (this.editedIndex > -1) {
-    console.log("Here:"+this.editedIndex)
-    this.updateTask({
-      taskIndex: this.editedIndex,
-      updatedData: formData,
-    });
-  } else {
-    this.addTask(formData);
-  }
-  this.close();
+      if (this.editedIndex > -1) {
+        this.updateTask({
+          taskIndex: this.editedIndex,
+          updatedData: formData,
+        });
+      } else {
+        this.addTask(formData);
+        this.getDonor();
+      }
+      this.close();
     },
 
     close() {
       this.dialog = false;
       this.donorDetail = {};
       this.editedIndex = -1;
+    },
+
+    closeDeleteModal() {
+      this.deleteDialog = false;
+      this.taskToDelete = null;
     },
   },
 };
