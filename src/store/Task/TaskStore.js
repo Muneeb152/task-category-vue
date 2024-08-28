@@ -49,6 +49,21 @@ const actions = {
                 alert(error);
             });
     },
+    addCategory({
+    }, userData) {
+        let token = localStorage.getItem("token");
+        axios
+            .post("http://127.0.0.1:8000/api/categories", userData, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then(function(response) {
+                alert("Category Added Successfully")
+                console.log(response.data);
+            })
+            .catch(function(error) {
+                alert(error);
+            });
+    },
     updateTask({ commit }, payload) {
         const { taskIndex, updatedData } = payload;
         let token = localStorage.getItem("token");

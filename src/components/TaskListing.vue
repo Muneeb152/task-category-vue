@@ -11,7 +11,7 @@
     <v-btn
       class="mt-2 ml-3"
       color="primary"
-      @click="openAddTaskModal"
+      @click="openAddCategoryModal"
     >
       Add Category
     </v-btn>
@@ -68,6 +68,11 @@
       </template>
     </v-data-table>
 
+    <add-category-modal
+      :dialog="categoryDialog"
+      @close="closeCategoryModal"
+      @save="saveCategory"
+    />
     <add-task-modal
       v-if="dialog"
       :task-detail="donorDetail"
@@ -93,11 +98,13 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 import AddTaskModal from "@/components/AddTaskModal.vue";
+import AddCategoryModal from "@/components/AddCategoryModal.vue";
 import axios from 'axios'
 export default {
   name: "TaskListingComponent",
   components: {
     AddTaskModal,
+    AddCategoryModal,
   },
   data() {
     return {
@@ -118,6 +125,7 @@ export default {
       editedIndex: -1,
       categories: [],
       taskToDelete: null,
+      categoryDialog: false,
     };
   },
 
@@ -144,8 +152,21 @@ export default {
   },
 
   methods: {
-    ...mapActions(["addTask", "updateTask", "deleteTask", "getDonor"]),
+    ...mapActions(["addTask", "updateTask", "deleteTask", "getDonor","addCategory"]),
 
+    openAddCategoryModal() {
+      this.categoryDialog = true;
+    },
+    closeCategoryModal() {
+      this.categoryDialog = false;
+    },
+    saveCategory(categoryDetail) {
+
+      console.log("Category Details:", categoryDetail);
+      this.closeCategoryModal();
+      this.addCategory(categoryDetail);
+      this.getDonor();
+    },
     openAddTaskModal() {
       this.donorDetail = {};
       this.editedIndex = -1;
