@@ -117,7 +117,7 @@ export default {
  ],
       passwordRules: [
   v => !!v || 'Password is required',
-  v => v.length >= 6 || "Min 6 characters",
+  v => v.length >= 6 || "Min 8 characters",
  ],
       
     };

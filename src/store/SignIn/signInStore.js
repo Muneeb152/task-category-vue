@@ -32,19 +32,19 @@ const actions = {
     router.push("/");
     let token = localStorage.getItem("token");
     axios
-      .post(config.API_ROOT_URL + "/logout", {
+      .post(config.API_ROOT_URL + "/logout", null, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(function(response) {
-        console.log("sign put :::", response.data);
+        console.log("sign out :::", response.data);
         commit("SignOutClear");
-        router.push("/");
       })
       .catch(function(error) {
         commit("SignOutClear");
         console.log(error);
       });
   },
+  
 };
 const mutations = {
   SignInCredentials(state, payload) {

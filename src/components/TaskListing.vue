@@ -140,7 +140,10 @@ export default {
       immediate: true,
     },
   },
-
+  mounted() {
+  
+  this.fetchCategories();
+},
   methods: {
     ...mapActions(["addTask", "updateTask", "deleteTask", "getDonor", "addCategory"]),
     async fetchCategories() {
@@ -170,6 +173,7 @@ export default {
       this.closeCategoryModal();
       this.addCategory(categoryDetail);
       this.getDonor();
+      this.fetchCategories();
     },
     openAddTaskModal() {
       this.donorDetail = {};
@@ -192,26 +196,35 @@ export default {
       });
     },
     save(taskDetail) {
-      const formData = new FormData();
-      for (const key in taskDetail) {
-        if (key === "image" && taskDetail[key] instanceof File) {
-          formData.append(key, taskDetail[key]);
-        } else if (key !== "category_name") {
-          formData.append(key, taskDetail[key]);
-        }
+  if (this.editedIndex > -1) {
+    const updatedData = {};
+    for (const key in taskDetail) {
+      if (key !== "category_name") {
+        updatedData[key] = taskDetail[key];
       }
+    }
 
-      if (this.editedIndex > -1) {
-        this.updateTask({
-          taskIndex: this.editedIndex,
-          updatedData: formData,
-        });
-      } else {
-        this.addTask(formData);
-        this.getDonor();
+    this.updateTask({
+      taskIndex: this.editedIndex,
+      updatedData: updatedData,
+    });
+  } else {
+    const formData = new FormData();
+    for (const key in taskDetail) {
+      if (key === "image" && taskDetail[key] instanceof File) {
+        formData.append(key, taskDetail[key]);
+      } else if (key !== "category_name") {
+        formData.append(key, taskDetail[key]);
       }
-      this.close();
-    },
+    }
+
+    this.addTask(formData);
+    this.getDonor();
+  }
+
+  this.close();
+},
+
     close() {
       this.dialog = false;
       this.donorDetail = {};

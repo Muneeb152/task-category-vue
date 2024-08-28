@@ -73,7 +73,6 @@ const actions = {
           .put(`http://127.0.0.1:8000/api/tasks/${taskId}`, updatedData, {
             headers: { 
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
             },
           })
           .then(function(response) {

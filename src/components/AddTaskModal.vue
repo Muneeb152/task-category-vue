@@ -105,10 +105,7 @@ export default {
     categories: Array,
   },
 
-  mounted() {
-  
- console.log("Mounted:"+this.categories)
-},
+
   data() {
     return {
       localTaskDetail: { ...this.taskDetail },
