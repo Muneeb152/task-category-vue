@@ -1,32 +1,42 @@
 <template>
   <div>
-    <v-btn class="mt-2 ml-3" color="primary" @click="openAddTaskModal">
-      Add Task
-    </v-btn>
+    <v-row class="mt-3 ml-3">
+      <v-col cols="12" md="auto">
+        <v-btn class="mr-3" color="primary" @click="openAddTaskModal">
+          Add Task
+        </v-btn>
+      </v-col>
+      <v-col cols="12" md="auto">
+        <v-btn class="mr-3" color="primary" @click="openAddCategoryModal">
+          Add Category
+        </v-btn>
+      </v-col>
+      <v-col cols="12" md="auto">
+        <v-btn color="primary" @click="exportToExcel">
+          Export to Excel
+        </v-btn>
+      </v-col>
+    </v-row>
 
-    <v-btn class="mt-2 ml-3" color="primary" @click="openAddCategoryModal">
-      Add Category
-    </v-btn>
-
-    <v-btn class="mt-2 ml-3" color="primary" @click="exportToExcel">
-      Export to Excel
-    </v-btn>
-
-    <!-- Category Filter Dropdown -->
-    <v-select
-      v-model="selectedCategory"
-      :items="categories"
-      item-value="id"
-      item-text="name"
-      label="Filter by Category"
-      class="mt-2 ml-3"
-      solo
-    ></v-select>
-
-    <v-btn class="mt-2 ml-3" color="primary" @click="filterByCategory">
-      <v-icon left>mdi-magnify</v-icon>
-      Search
-    </v-btn>
+    <v-row class="ml-3">
+      <v-col cols="12" md="4">
+        <!-- Category Filter Dropdown -->
+        <v-select
+          v-model="selectedCategory"
+          :items="categories"
+          item-value="id"
+          item-text="name"
+          label="Filter by Category"
+          solo
+        ></v-select>
+      </v-col>
+      <v-col cols="12" md="auto">
+        <v-btn class="ml-md-3 mt-md-0 mt-2" color="primary" @click="filterByCategory">
+          <v-icon left>mdi-magnify</v-icon>
+          Search
+        </v-btn>
+      </v-col>
+    </v-row>
 
     <v-data-table :headers="headers" :items="filteredTasks" :search="search" sort-by="u_id" class="elevation-1 ma-3">
       <!-- DataTable content -->
