@@ -130,19 +130,25 @@ export default {
     },
 
     save(taskDetail) {
-      // Use taskDetail.category_id directly as it should be updated correctly in the modal
-      const updatedTaskDetail = {
-        ...taskDetail,
-      };
-      if (this.editedIndex > -1) {
-        this.updateDonor({
-          donorIndex: this.editedIndex,
-          updatedData: updatedTaskDetail,
-        });
-      } else {
-        this.addTask(updatedTaskDetail);
-      }
-      this.close();
+  const formData = new FormData();
+
+  for (const key in taskDetail) {
+    if (key === "image" && taskDetail[key] instanceof File) {
+      formData.append(key, taskDetail[key]);
+    } else {
+      formData.append(key, taskDetail[key]);
+    }
+  }
+
+  if (this.editedIndex > -1) {
+    this.updateDonor({
+      donorIndex: this.editedIndex,
+      updatedData: formData,
+    });
+  } else {
+    this.addTask(formData);
+  }
+  this.close();
     },
 
     close() {
