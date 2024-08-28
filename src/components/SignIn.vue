@@ -89,6 +89,11 @@ emailRules: [
         this.errorMessages = ''
       },
     },
+    mounted() {
+  
+      localStorage.clear();
+},
+
     methods: {
         ...mapActions(["SignInCredentials","getDonor",]),
     setSignInInfo() {

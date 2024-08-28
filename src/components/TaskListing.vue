@@ -7,6 +7,13 @@
     >
       Add Task
     </v-btn>
+    <v-btn
+      class="mt-2 ml-3"
+      color="primary"
+      @click="exportToExcel"
+    >
+      Export to Excel
+    </v-btn>
 
     <v-data-table
       :headers="headers"
@@ -78,7 +85,7 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 import AddTaskModal from "@/components/AddTaskModal.vue";
-
+import axios from 'axios'
 export default {
   name: "TaskListingComponent",
   components: {
@@ -177,6 +184,7 @@ export default {
       }
       this.close();
     },
+    
 
     close() {
       this.dialog = false;
@@ -187,6 +195,30 @@ export default {
     closeDeleteModal() {
       this.deleteDialog = false;
       this.taskToDelete = null;
+    },
+    exportToExcel() {
+      let token = localStorage.getItem("token");
+
+      axios({
+        url: "http://127.0.0.1:8000/api/task/export",
+        method: "GET",
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "tasks.xlsx");
+        document.body.appendChild(link);
+        link.click();
+      })
+      .catch((error) => {
+        console.error("Error exporting to Excel:", error);
+        alert("Failed to export tasks. Please try again.");
+      });
     },
   },
 };
