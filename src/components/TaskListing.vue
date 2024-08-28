@@ -7,6 +7,14 @@
     >
       Add Task
     </v-btn>
+
+    <v-btn
+      class="mt-2 ml-3"
+      color="primary"
+      @click="openAddTaskModal"
+    >
+      Add Category
+    </v-btn>
     <v-btn
       class="mt-2 ml-3"
       color="primary"
