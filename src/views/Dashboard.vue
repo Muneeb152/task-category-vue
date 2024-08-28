@@ -14,7 +14,7 @@ export default {
   name: "DashboardView",
   components: { appBar },
 
-  mounted() {
+  created() {
   
     this.getDonor();
   },

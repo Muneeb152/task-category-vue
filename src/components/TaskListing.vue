@@ -1,49 +1,25 @@
 <template>
   <div>
-    <v-btn
-      class="mt-2 ml-3"
-      color="primary"
-      @click="openAddTaskModal"
-    >
+    <v-btn class="mt-2 ml-3" color="primary" @click="openAddTaskModal">
       Add Task
     </v-btn>
 
-    <v-btn
-      class="mt-2 ml-3"
-      color="primary"
-      @click="openAddCategoryModal"
-    >
+    <v-btn class="mt-2 ml-3" color="primary" @click="openAddCategoryModal">
       Add Category
     </v-btn>
-    <v-btn
-      class="mt-2 ml-3"
-      color="primary"
-      @click="exportToExcel"
-    >
+    <v-btn class="mt-2 ml-3" color="primary" @click="exportToExcel">
       Export to Excel
     </v-btn>
 
-    <v-data-table
-      :headers="headers"
-      :items="getDonorsData"
-      :search="search"
-      sort-by="u_id"
-      class="elevation-1 ma-3"
-    >
+    <v-data-table :headers="headers" :items="getDonorsData" :search="search" sort-by="u_id" class="elevation-1 ma-3">
       <!-- DataTable content -->
       <template v-slot:top>
         <v-toolbar color="#03A9F4" flat>
           <v-toolbar-title class="white--text">Task's Listing</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-card-title class="mr-15">
-            <v-text-field
-              v-model="search"
-              dark
-              append-icon="mdi-magnify"
-              label="Search Task"
-              single-line
-              hide-details
-            ></v-text-field>
+            <v-text-field v-model="search" dark append-icon="mdi-magnify" label="Search Task" single-line
+              hide-details></v-text-field>
           </v-card-title>
         </v-toolbar>
       </template>
@@ -51,13 +27,7 @@
       <!-- Image slot -->
       <template v-slot:item.image="{ item }">
         <div class="mx-auto my-2">
-          <v-img
-            v-if="item.image"
-            :src="item.image"
-            alt="Task Image"
-            max-height="50px"
-            max-width="50px"
-          ></v-img>
+          <v-img v-if="item.image" :src="item.image" alt="Task Image" max-height="50px" max-width="50px"></v-img>
         </div>
       </template>
 
@@ -68,18 +38,8 @@
       </template>
     </v-data-table>
 
-    <add-category-modal
-      :dialog="categoryDialog"
-      @close="closeCategoryModal"
-      @save="saveCategory"
-    />
-    <add-task-modal
-      v-if="dialog"
-      :task-detail="donorDetail"
-      :categories="categories"
-      @close="close"
-      @save="save"
-    />
+    <add-category-modal :dialog="categoryDialog" @close="closeCategoryModal" @save="saveCategory" />
+    <add-task-modal v-if="dialog" :task-detail="donorDetail" :categories="categories" @close="close" @save="save" />
 
     <!-- Delete Modal -->
     <v-dialog v-model="deleteDialog" max-width="500px">
@@ -135,24 +95,44 @@ export default {
 
   watch: {
     getDonorsData: {
-      handler(tasks) {
-        const categoryMap = new Map();
-        tasks.forEach(task => {
-          if (!categoryMap.has(task.category_id)) {
-            categoryMap.set(task.category_id, {
-              id: task.category_id,
-              name: task.category_name
-            });
-          }
-        });
-        this.categories = Array.from(categoryMap.values());
-      },
-      immediate: true,
+    handler(tasks) {
+      const categoryMap = new Map();
+      tasks.forEach(task => {
+        if (!categoryMap.has(task.category_id)) {
+          categoryMap.set(task.category_id, {
+            id: task.category_id,
+            name: task.category_name,
+          });
+        }
+      });
+      this.categories = Array.from(categoryMap.values());
     },
+    immediate: true,
+  },
+  },
+  created() {
+    this.fetchCategories();
   },
 
   methods: {
-    ...mapActions(["addTask", "updateTask", "deleteTask", "getDonor","addCategory"]),
+    ...mapActions(["addTask", "updateTask", "deleteTask", "getDonor", "addCategory"]),
+    async fetchCategories() {
+      let token = localStorage.getItem("token");
+      
+      try {
+        const response = await axios({
+        url: "http://127.0.0.1:8000/api/categories",
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        this.categories = response.data;
+        console.log("Fetched categories:"+this.categories)
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    },
 
     openAddCategoryModal() {
       this.categoryDialog = true;
@@ -213,7 +193,7 @@ export default {
       }
       this.close();
     },
-    
+
 
     close() {
       this.dialog = false;
@@ -236,18 +216,18 @@ export default {
           Authorization: `Bearer ${token}`,
         },
       })
-      .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "tasks.xlsx");
-        document.body.appendChild(link);
-        link.click();
-      })
-      .catch((error) => {
-        console.error("Error exporting to Excel:", error);
-        alert("Failed to export tasks. Please try again.");
-      });
+        .then((response) => {
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", "tasks.xlsx");
+          document.body.appendChild(link);
+          link.click();
+        })
+        .catch((error) => {
+          console.error("Error exporting to Excel:", error);
+          alert("Failed to export tasks. Please try again.");
+        });
     },
   },
 };
