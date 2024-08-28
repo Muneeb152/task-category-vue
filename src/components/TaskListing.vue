@@ -7,19 +7,35 @@
     <v-btn class="mt-2 ml-3" color="primary" @click="openAddCategoryModal">
       Add Category
     </v-btn>
+
     <v-btn class="mt-2 ml-3" color="primary" @click="exportToExcel">
       Export to Excel
     </v-btn>
 
-    <v-data-table :headers="headers" :items="getDonorsData" :search="search" sort-by="u_id" class="elevation-1 ma-3">
+    <!-- Category Filter Dropdown -->
+    <v-select
+      v-model="selectedCategory"
+      :items="categories"
+      item-value="id"
+      item-text="name"
+      label="Filter by Category"
+      class="mt-2 ml-3"
+      solo
+    ></v-select>
+
+    <v-btn class="mt-2 ml-3" color="primary" @click="filterByCategory">
+      <v-icon left>mdi-magnify</v-icon>
+      Search
+    </v-btn>
+
+    <v-data-table :headers="headers" :items="filteredTasks" :search="search" sort-by="u_id" class="elevation-1 ma-3">
       <!-- DataTable content -->
       <template v-slot:top>
         <v-toolbar color="#03A9F4" flat>
           <v-toolbar-title class="white--text">Task's Listing</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-card-title class="mr-15">
-            <v-text-field v-model="search" dark append-icon="mdi-magnify" label="Search Task" single-line
-              hide-details></v-text-field>
+            <v-text-field v-model="search" dark append-icon="mdi-magnify" label="Search Task" single-line hide-details></v-text-field>
           </v-card-title>
         </v-toolbar>
       </template>
@@ -55,6 +71,7 @@
   </div>
 </template>
 
+
 <script>
 import { mapActions, mapGetters } from "vuex";
 import AddTaskModal from "@/components/AddTaskModal.vue";
@@ -86,6 +103,8 @@ export default {
       categories: [],
       taskToDelete: null,
       categoryDialog: false,
+      selectedCategory: null,  // For category filter
+      filteredTasks: [],  // To hold filtered tasks
     };
   },
 
@@ -95,23 +114,21 @@ export default {
 
   watch: {
     getDonorsData: {
-    handler(tasks) {
-      const categoryMap = new Map();
-      tasks.forEach(task => {
-        if (!categoryMap.has(task.category_id)) {
-          categoryMap.set(task.category_id, {
-            id: task.category_id,
-            name: task.category_name,
-          });
-        }
-      });
-      this.categories = Array.from(categoryMap.values());
+      handler(tasks) {
+        const categoryMap = new Map();
+        tasks.forEach(task => {
+          if (!categoryMap.has(task.category_id)) {
+            categoryMap.set(task.category_id, {
+              id: task.category_id,
+              name: task.category_name,
+            });
+          }
+        });
+        this.categories = Array.from(categoryMap.values());
+        this.filteredTasks = tasks;  // Initialize with all tasks
+      },
+      immediate: true,
     },
-    immediate: true,
-  },
-  },
-  created() {
-    this.fetchCategories();
   },
 
   methods: {
@@ -121,14 +138,13 @@ export default {
       
       try {
         const response = await axios({
-        url: "http://127.0.0.1:8000/api/categories",
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+          url: "http://127.0.0.1:8000/api/categories",
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         this.categories = response.data;
-        console.log("Fetched categories:"+this.categories)
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
@@ -141,8 +157,6 @@ export default {
       this.categoryDialog = false;
     },
     saveCategory(categoryDetail) {
-
-      console.log("Category Details:", categoryDetail);
       this.closeCategoryModal();
       this.addCategory(categoryDetail);
       this.getDonor();
@@ -152,26 +166,21 @@ export default {
       this.editedIndex = -1;
       this.dialog = true;
     },
-
     editItem(item) {
       this.donorDetail = { ...item };
       this.editedIndex = item.id;
       this.dialog = true;
     },
-
     confirmDelete(item) {
       this.deleteDialog = true;
       this.taskToDelete = item;
     },
-
     handledeleteTask() {
       this.closeDeleteModal();
       this.deleteTask({ taskId: this.taskToDelete.id }).then(() => {
         this.getDonor();
-
       });
     },
-
     save(taskDetail) {
       const formData = new FormData();
       for (const key in taskDetail) {
@@ -193,14 +202,11 @@ export default {
       }
       this.close();
     },
-
-
     close() {
       this.dialog = false;
       this.donorDetail = {};
       this.editedIndex = -1;
     },
-
     closeDeleteModal() {
       this.deleteDialog = false;
       this.taskToDelete = null;
@@ -229,6 +235,16 @@ export default {
           alert("Failed to export tasks. Please try again.");
         });
     },
+    filterByCategory() {
+      if (this.selectedCategory) {
+        this.filteredTasks = this.getDonorsData.filter(
+          (task) => task.category_id === this.selectedCategory
+        );
+      } else {
+        this.filteredTasks = this.getDonorsData;  // Show all tasks if no category is selected
+      }
+    },
   },
 };
 </script>
+
