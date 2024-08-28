@@ -1,156 +1,154 @@
 <template>
-  <v-data-table
-    :headers="headers"
-    :items="getDonorsData"
-    :search="search"
-    sort-by="u_id"
-    class="elevation-1 ma-3"
-  >
-    <template v-slot:top>
-      <!---------Tool Bar----------->
-      <v-toolbar color="#03A9F4" flat>
-          <v-toolbar-title class="white--text" 
-            >Task's Listing
-          </v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-card-title class="mr-15">
-              <!---------Search Bar----------->
-          <v-text-field
-            v-model="search"
-            dark
-            append-icon="mdi-magnify"
-            label="Search Task"
-            single-line
-            hide-details
-          ></v-text-field>
-        </v-card-title>
-        <!---------Text Fields Used to Display Data in the Data Table----------->
-        <v-dialog v-model="dialog" max-width="500px" persistent>
-          <v-card>
-            <v-divider></v-divider>
-            <br />
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col cols="12" >
-                    <v-text-field
-                      outlined
-                      dense
-                      persistent-hint
-                      v-model="donorDetail.u_id"
-                      label="Donor Id"
-                    ></v-text-field>
-                  </v-col>
-                  
-                  <v-col cols="12" >
-                    <v-text-field
-                      outlined
-                      dense
-                      persistent-hint
-                      v-model="donorDetail.blood_group"
-                      label="Blood Group"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field
-                      outlined
-                      dense
-                      persistent-hint
-                      v-model="donorDetail.name"
-                      label="Donor Name"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field
-                      outlined
-                      dense
-                      persistent-hint
-                      v-model="donorDetail.city"
-                      label="Donor Address"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
-      </v-toolbar>
-    </template>
-    <!-------------------------------Message Button-------------------------------->
-    <template v-slot:[`item.actions`]="{  }">
-       <v-btn
-       class="red lighten-2 white--text"
-       outlined
-       @click="chat">
-        Message
-      </v-btn>
-    </template>
-  </v-data-table>
+  <div>
+    <v-btn
+      class="mt-2 ml-3"
+      color="primary"
+      @click="openAddTaskModal"
+    >
+      Add Task
+    </v-btn>
+
+    <v-data-table
+      :headers="headers"
+      :items="getDonorsData"
+      :search="search"
+      sort-by="u_id"
+      class="elevation-1 ma-3"
+    >
+      <!-- DataTable content -->
+      <template v-slot:top>
+        <v-toolbar color="#03A9F4" flat>
+          <v-toolbar-title class="white--text">Task's Listing</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-card-title class="mr-15">
+            <v-text-field
+              v-model="search"
+              dark
+              append-icon="mdi-magnify"
+              label="Search Task"
+              single-line
+              hide-details
+            ></v-text-field>
+          </v-card-title>
+        </v-toolbar>
+      </template>
+
+      <!-- Image slot -->
+      <template v-slot:item.image="{ item }">
+        <div class="mx-auto my-2">
+          <v-img
+            v-if="item.image"
+            :src="item.image"
+            alt="Task Image"
+            max-height="50px"
+            max-width="50px"
+          ></v-img>
+        </div>
+      </template>
+
+      <!-- Actions slot -->
+      <template v-slot:item.actions="{ item }">
+        <v-icon class="me-2" size="small" @click="editItem(item)">mdi-pencil</v-icon>
+        <v-icon size="small" @click="deleteItem(item)">mdi-delete</v-icon>
+      </template>
+    </v-data-table>
+
+    <add-task-modal
+      v-if="dialog"
+      :task-detail="donorDetail"
+      :categories="categories"
+      @close="close"
+      @save="save"
+    />
+  </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from "vuex";
+import AddTaskModal from "@/components/AddTaskModal.vue"; // Ensure correct import path
 
 export default {
-  name: "DonorComponent",
-  data: () => ({
-    dialog: false,
-    search: "",
-    dialogDelete: false,
-    dialoginfo: false,
-    headers: [
-       {
-        text: "Id",
-        align: "start",
-        sortable: true,
-        value: "id",
-      },
-      // { text: "Id", value: "id", sortable: false },
-      { text: "Task Name", value: "name" },
-      { text: "Description", value: "description"},
-      { text: "Start Date", value: "start_date"},
-      { text: "End Date", value: "end_date"},
-      { text: "Category Name", value: "category_id", sortable: false },
-      { text: "Task Image", value: "image", sortable: false },
-      { text: "Actions", value: "actions", sortable: false },
-    ],
-    donorId: -1,
-    editedIndex: -1,
-    donorDetail: {},
-  }),
+  name: "TaskListingComponent",
+  components: {
+    AddTaskModal,
+  },
+  data() {
+    return {
+      dialog: false,
+      search: "",
+      headers: [
+        { text: "Id", align: "start", sortable: true, value: "id" },
+        { text: "Task Name", value: "name" },
+        { text: "Description", value: "description" },
+        { text: "Start Date", value: "start_date" },
+        { text: "End Date", value: "end_date" },
+        { text: "Category Name", value: "category_name", sortable: false },
+        { text: "Task Image", value: "image", sortable: false },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+      donorDetail: {},
+      editedIndex: -1,
+      categories: [],
+    };
+  },
 
   computed: {
-     ...mapGetters(["getDonorsData"]),
+    ...mapGetters(["getDonorsData"]),
   },
 
   watch: {
-    dialog(val) {
-      val || this.close();
+    getDonorsData: {
+    handler(tasks) {
+      const categoryMap = new Map();
+      tasks.forEach(task => {
+        if (!categoryMap.has(task.category_id)) {
+          categoryMap.set(task.category_id, {
+            id: task.category_id,
+            name: task.category_name
+          });
+        }
+      });
+      this.categories = Array.from(categoryMap.values());
     },
-    dialogDelete(val) {
-      val || this.closeDelete();
-    },
-    dialoginfo(val) {
-      val || this.close();
-    },
+    immediate: true,
+  },
   },
 
   methods: {
-    ...mapActions(["addDonor"]),
-    save() {
+    ...mapActions(["addTask", "updateDonor"]),
+
+    openAddTaskModal() {
+      this.donorDetail = {}; // Reset donorDetail for adding a new task
+      this.editedIndex = -1;
+      this.dialog = true;
+    },
+
+    editItem(item) {
+      this.donorDetail = { ...item };
+      this.editedIndex = this.getDonorsData.indexOf(item);
+      this.dialog = true;
+    },
+
+    save(taskDetail) {
+      // Use taskDetail.category_id directly as it should be updated correctly in the modal
+      const updatedTaskDetail = {
+        ...taskDetail,
+      };
       if (this.editedIndex > -1) {
         this.updateDonor({
           donorIndex: this.editedIndex,
-          updatedData: this.donorDetail,
+          updatedData: updatedTaskDetail,
         });
       } else {
-        this.addDonor(this.donorDetail);
+        this.addTask(updatedTaskDetail);
       }
       this.close();
     },
-    chat()
-    {
-      this.$router.push("/Chat")
+
+    close() {
+      this.dialog = false;
+      this.donorDetail = {};
+      this.editedIndex = -1;
     },
   },
 };

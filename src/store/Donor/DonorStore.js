@@ -33,15 +33,15 @@ const actions = {
                 );
         });
     },
-    addDonor({
+    addTask({
         commit
     }, userData) {
-        //let token = localStorage.getItem("token");
+        let token = localStorage.getItem("token");
         commit("addNewDonor", userData);
         console.log("new userData::", userData);
         axios
-            .post("http://127.0.0.1:1333/listdoners", userData, {
-                //headers: { Authorization: `Bearer ${token}` },
+            .post("http://127.0.0.1:8000/api/tasks", userData, {
+                headers: { Authorization: `Bearer ${token}` },
             })
             .then(function(response) {
                 console.log(response.data);
