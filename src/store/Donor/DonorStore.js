@@ -22,11 +22,9 @@ const actions = {
                     (response) => {
                         console.log("Donor response", response);
                         commit("getDonor", response.data);
-                        // http success, call the mutator and change something in state
-                        resolve(response); // Let the calling function know that http is done. You may send some data back
+                        resolve(response);
                     },
                     (error) => {
-                        // http failed, let the calling function know that action did not work out
                         console.log(error);
                         reject(error);
                     }
@@ -50,6 +48,29 @@ const actions = {
                 alert(error);
             });
     },
+    updateTask({ commit }, payload) {
+        const { taskIndex, updatedData } = payload;
+        let token = localStorage.getItem("token");
+        const taskId = taskIndex;
+      
+        axios
+          .put(`http://127.0.0.1:8000/api/tasks/${taskId}`, updatedData, {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          })
+          .then(function(response) {
+            console.log(response.data);
+            commit("updateExistingTask", { taskIndex, updatedTask: response.data });
+          })
+          .catch(function(error) {
+            alert(error.response.data.message || error);
+          });
+      }
+      
+    
+    
 };
 const mutations = {
     addNewUser(state, payload) {

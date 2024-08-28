@@ -115,7 +115,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["addTask", "updateDonor"]),
+    ...mapActions(["addTask", "updateTask"]),
 
     openAddTaskModal() {
       this.donorDetail = {}; // Reset donorDetail for adding a new task
@@ -124,8 +124,10 @@ export default {
     },
 
     editItem(item) {
+      console.log("Id in editedItem is:"+item)
       this.donorDetail = { ...item };
-      this.editedIndex = this.getDonorsData.indexOf(item);
+      this.editedIndex = item.id;
+      
       this.dialog = true;
     },
 
@@ -134,15 +136,16 @@ export default {
 
   for (const key in taskDetail) {
     if (key === "image" && taskDetail[key] instanceof File) {
-      formData.append(key, taskDetail[key]);
-    } else {
-      formData.append(key, taskDetail[key]);
+        formData.append(key, taskDetail[key]);
+    } else if (key !== "category_name") { 
+        formData.append(key, taskDetail[key]);
     }
-  }
+}
 
   if (this.editedIndex > -1) {
-    this.updateDonor({
-      donorIndex: this.editedIndex,
+    console.log("Here:"+this.editedIndex)
+    this.updateTask({
+      taskIndex: this.editedIndex,
       updatedData: formData,
     });
   } else {
